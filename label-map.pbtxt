@@ -1,0 +1,44 @@
+item {
+	id: 1
+	name: "box_arrow"
+}
+item {
+	id: 2
+	name: "change_user"
+}
+item {
+	id: 3
+	name: "close_button"
+}
+item {
+	id: 4
+	name: "dialog_hint"
+}
+item {
+	id: 5
+	name: "dialog_hint_inverted"
+}
+item {
+	id: 6
+	name: "menu_arrow"
+}
+item {
+	id: 7
+	name: "r_to_boxes"
+}
+item {
+	id: 8
+	name: "shiny_hint"
+}
+item {
+	id: 9
+	name: "user_box"
+}
+item {
+	id: 10
+	name: "woman_egg"
+}
+item {
+	id: 11
+	name: "woman_no_egg"
+}

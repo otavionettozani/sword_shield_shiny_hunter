@@ -1,0 +1,11 @@
+woman_no_egg
+menu_arrow
+r_to_boxes
+dialog_hint
+dialog_hint_inverted
+shiny_hint
+box_arrow
+change_user
+close_button
+user_box
+woman_egg

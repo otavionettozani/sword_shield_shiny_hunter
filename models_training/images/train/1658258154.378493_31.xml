@@ -1,0 +1,26 @@
+<annotation>
+	<folder>train</folder>
+	<filename>1658258154.378493_31.jpg</filename>
+	<path>/Users/otavionettozani/Developer/pkmn/image-processing/models_training/images/train/1658258154.378493_31.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>570</width>
+		<height>121</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>close_button</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1</xmin>
+			<ymin>2</ymin>
+			<xmax>570</xmax>
+			<ymax>121</ymax>
+		</bndbox>
+	</object>
+</annotation>

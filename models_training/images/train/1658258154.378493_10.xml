@@ -1,0 +1,26 @@
+<annotation>
+	<folder>train</folder>
+	<filename>1658258154.378493_10.jpg</filename>
+	<path>/Users/otavionettozani/Developer/pkmn/image-processing/models_training/images/train/1658258154.378493_10.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>42</width>
+		<height>43</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>dialog_hint_inverted</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>2</xmin>
+			<ymin>5</ymin>
+			<xmax>42</xmax>
+			<ymax>40</ymax>
+		</bndbox>
+	</object>
+</annotation>
