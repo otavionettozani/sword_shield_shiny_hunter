@@ -285,6 +285,37 @@ class DracozoltStateMachineBuilder:
         return False
       return state.data["go_to_next_step"]
 
+    def sEnd_action(state, start_time, current_time):
+      if not "captured" in state.data:
+        print("Capture Screen")
+        state.data["captured"] = True
+    
+    def s18_action(state, start_time, current_time):
+      button_interval = 2
+      if not "last_button_press" in state.data:
+        state.data["last_button_press"] = start_time
+      interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
+
+      if interval_since_last_press > button_interval:
+        print("Press Home")
+        state.data["last_button_press"] = current_time
+
+    def s18_transition(state):
+      return self.locations.change_user_hint_location != None
+
+    def s19_action(state, start_time, current_time):
+      button_interval = 2
+      if not "last_button_press" in state.data:
+        state.data["last_button_press"] = start_time
+      interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
+
+      if interval_since_last_press > button_interval:
+        print("Press Y")
+        state.data["last_button_press"] = current_time
+
+    def s19_transition(state):
+      return self.locations.close_app_hint_location != None
+
     s1 = State("Opening Game, First Talk")
     s2 = State("Talking To Scientist, First Decision")
     s3 = State("Talking To Scientist, Second Decision")
@@ -304,6 +335,7 @@ class DracozoltStateMachineBuilder:
     s17 = State("Check Shinyness")
     sEnd = State("Is Shiny, Stop")
     s18 = State("Isn't Shiny, Reset")
+    s19 = State("Change User")
 
     s1.set_action(s1_action)
     s1.add_transition(s2, s1_transition)
@@ -357,4 +389,12 @@ class DracozoltStateMachineBuilder:
     s17.add_transition(sEnd, s17_end_transition)
     s17.add_transition(s18, s17_reset_transition)
 
-    return StateMachine(s17)
+    sEnd.set_action(sEnd_action)
+
+    s18.set_action(s18_action)
+    s18.add_transition(s19, s18_transition)
+
+    s19.set_action(s19_action)
+    s19.add_transition(s1, s19_transition)
+
+    return StateMachine(s1)
