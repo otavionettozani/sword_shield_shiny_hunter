@@ -1,3 +1,4 @@
 **/.DS_Store
-models_training/pre-trained-models/**/*
-images/**/*
+models_training/pre-trained-models
+images
+**/__pycache__/

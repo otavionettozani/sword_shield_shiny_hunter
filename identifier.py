@@ -2,6 +2,8 @@ import cv2
 import numpy
 from datetime import datetime
 from threading import Timer, Thread
+from state_machine_builders import DracozoltStateMachineBuilder
+import time
 
 class Locations():
   def __init__(self):
@@ -57,20 +59,9 @@ def finder_factory(name, threshold, all):
           locations.__dict__[f"{name}_location"] = position
         else:
           locations.__dict__[f"{name}_location"] = None
-
-      # if(name == "shiny_marker"):
-      #   print()
-      #   print(filtered_matches)
       
-      # if len(zipped_matches) > 0:
-      #   pt = zipped_matches[0]
-      #   position = mount_rect(w,h)(pt)
-      #   if all:
-      #     locations.__dict__[f"{name}_location"] = map(mount_rect(w,h), zipped_matches)
-      #   else:
-      #     locations.__dict__[f"{name}_location"] = position
-      # else:
-      #   locations.__dict__[f"{name}_location"] = None
+      # optimizing to only run once every 1/10 seconds
+      time.sleep(1/10)
 
   return _find_internals
 
@@ -126,7 +117,12 @@ for data in input_data:
   thread.start()
   threads.append(thread)
 
+# State Machine
+state_machine = DracozoltStateMachineBuilder(locations).build()
+
+# Main Loop
 while True:
+  loop_start_time = datetime.now()
   ret, frame = video.read()
   current_frame = frame
   shown_frame = frame
@@ -150,6 +146,12 @@ while True:
 
   if pressed_key == ord('q'):
     break
+  
+  state_machine.step()
+  
+  loop_end_time = datetime.now()
+  loop_time_diff = (loop_end_time - loop_start_time).total_seconds()
+  time.sleep(max(1/10-loop_time_diff, 0))
 
 join_threads = True
 for thread in threads:
