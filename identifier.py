@@ -107,8 +107,10 @@ input_data = [
   ("close_app_hint", 0.7, False, (255, 0, 0))
 ]
 draw_boxes = True
+show_frame = False
 
-cv2.namedWindow('frame')
+if show_frame:
+  cv2.namedWindow('frame')
 
 # Threads
 threads = []
@@ -140,7 +142,8 @@ while True:
           rect_points = evaluatable
           shown_frame = cv2.rectangle(shown_frame, rect_points[0], rect_points[1], color, 2)
 
-  cv2.imshow('frame', shown_frame)
+  if show_frame:
+    cv2.imshow('frame', shown_frame)
   
   pressed_key = cv2.waitKey(1) & 0xFF
 

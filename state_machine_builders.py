@@ -1,25 +1,32 @@
 from state_machine import StateMachine, State
+from controller_client import ControllerClient
 
 class DracozoltStateMachineBuilder:
-  def __init__(self, locations):
+  def __init__(self, locations, client=ControllerClient(mock=False)):
     self.locations = locations
+    self.client = client
 
   def build(self):
     def s1_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 3
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
 
       if interval_since_last_press > button_interval:
-        print("Press A")
+        self.client.press_A()
         state.data["last_button_press"] = current_time
 
     def s1_transition(state):
-      return self.locations.dialog_arrow_location != None
+      target_y = 721
+      target_x = 1285
+      if self.locations.dialog_arrow_location == None:
+        return False
+      min_box, max_box = self.locations.dialog_arrow_location
+      return target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]
 
     def s2_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -31,12 +38,12 @@ class DracozoltStateMachineBuilder:
         target_y = 721
         min_box, max_box = self.locations.dialog_arrow_location
         if target_y > min_box[1] and target_y < max_box[1]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         else:
-          print("Press Down")
+          self.client.press_Down()
         state.data["last_button_press"] = current_time
 
     def s2_to_5_transition(state):
@@ -45,7 +52,7 @@ class DracozoltStateMachineBuilder:
       return state.data["go_to_next_step"] and not self.locations.dialog_arrow_location
 
     def s3_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -57,16 +64,16 @@ class DracozoltStateMachineBuilder:
         target_y = 663 # 663 = Bird | 721 = Fish
         min_box, max_box = self.locations.dialog_arrow_location
         if target_y > min_box[1] and target_y < max_box[1]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         else:
-          print("Press Down")
+          self.client.press_Down()
         state.data["last_button_press"] = current_time
 
     def s4_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -78,16 +85,16 @@ class DracozoltStateMachineBuilder:
         target_y = 663 # 663 = Drake | 721 = Dino
         min_box, max_box = self.locations.dialog_arrow_location
         if target_y > min_box[1] and target_y < max_box[1]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         else:
-          print("Press Down")
+          self.client.press_Down()
         state.data["last_button_press"] = current_time
 
     def s5_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -99,16 +106,16 @@ class DracozoltStateMachineBuilder:
         target_y = 663
         min_box, max_box = self.locations.dialog_arrow_location
         if target_y > min_box[1] and target_y < max_box[1]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         else:
-          print("Press Down")
+          self.client.press_Down()
         state.data["last_button_press"] = current_time
 
     def s6_to_10_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -121,7 +128,7 @@ class DracozoltStateMachineBuilder:
         target_x = 1487
         min_box, max_box = self.locations.dialog_next_location
         if target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         state.data["last_button_press"] = current_time
 
@@ -131,7 +138,7 @@ class DracozoltStateMachineBuilder:
       return state.data["go_to_next_step"] and not self.locations.dialog_next_location
         
     def s11_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -144,7 +151,7 @@ class DracozoltStateMachineBuilder:
         target_x = 1487
         min_box, max_box = self.locations.dialog_next_inverted_location
         if target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         state.data["last_button_press"] = current_time
 
@@ -154,7 +161,7 @@ class DracozoltStateMachineBuilder:
       return state.data["go_to_next_step"] and not self.locations.dialog_next_inverted_location
 
     def s12_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -167,7 +174,7 @@ class DracozoltStateMachineBuilder:
         target_x = 1381
         min_box, max_box = self.locations.dialog_next_inverted_location
         if target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]:
-          print("Press A")
+          self.client.press_A()
           state.data["go_to_next_step"] = True
         state.data["last_button_press"] = current_time
 
@@ -178,14 +185,14 @@ class DracozoltStateMachineBuilder:
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
 
       if interval_since_last_press > button_interval:
-        print("Press X")
+        self.client.press_X()
         state.data["last_button_press"] = current_time
 
     def s13_transition(state):
       return self.locations.menu_selection_arrow_location != None
 
     def s14_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -198,22 +205,22 @@ class DracozoltStateMachineBuilder:
         target_x = 522
         min_box, max_box = self.locations.menu_selection_arrow_location
         if target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]:
-          print("Press A")
+          self.client.press_A()
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         elif target_y > max_box[1]:
-          print("Press Down")
+          self.client.press_Down()
         elif target_x < min_box[0]:
-          print("Press Left")
+          self.client.press_Left()
         elif target_x > max_box[0]:
-          print("Press Right")
+          self.client.press_Right()
         state.data["last_button_press"] = current_time
 
     def s14_transition(state):
       return self.locations.r_to_boxes_location != None
 
     def s15_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 3
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -222,14 +229,14 @@ class DracozoltStateMachineBuilder:
         return
 
       if interval_since_last_press > button_interval:
-        print("Press R")
+        self.client.press_R()
         state.data["last_button_press"] = current_time
 
     def s15_transition(state):
       return self.locations.box_arrow_location != None
 
     def s16_action(state, start_time, current_time):
-      button_interval = 2
+      button_interval = 1
       if not "last_button_press" in state.data:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
@@ -243,15 +250,14 @@ class DracozoltStateMachineBuilder:
         min_box, max_box = self.locations.box_arrow_location
         if target_y > min_box[1] and target_y < max_box[1] and target_x > min_box[0] and target_x < max_box[0]:
           state.data["go_to_next_step"] = True
-          print("Next Step")
         elif target_y < min_box[1]:
-          print("Press Up")
+          self.client.press_Up()
         elif target_y > max_box[1]:
-          print("Press Down")
+          self.client.press_Down()
         elif target_x < min_box[0]:
-          print("Press Left")
+          self.client.press_Left()
         elif target_x > max_box[0]:
-          print("Press Right")
+          self.client.press_Right()
         state.data["last_button_press"] = current_time
 
     def s16_transition(state):
@@ -287,7 +293,7 @@ class DracozoltStateMachineBuilder:
 
     def sEnd_action(state, start_time, current_time):
       if not "captured" in state.data:
-        print("Capture Screen")
+        self.client.capture()
         state.data["captured"] = True
     
     def s18_action(state, start_time, current_time):
@@ -297,7 +303,7 @@ class DracozoltStateMachineBuilder:
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
 
       if interval_since_last_press > button_interval:
-        print("Press Home")
+        self.client.press_home()
         state.data["last_button_press"] = current_time
 
     def s18_transition(state):
@@ -310,7 +316,7 @@ class DracozoltStateMachineBuilder:
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
 
       if interval_since_last_press > button_interval:
-        print("Press Y")
+        self.client.press_Y()
         state.data["last_button_press"] = current_time
 
     def s19_transition(state):
