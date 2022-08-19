@@ -1,7 +1,7 @@
 import cv2
 import numpy
 from datetime import datetime
-from threading import Timer, Thread
+from threading import Timer, Thread, Event
 from state_machine_builders import DracozoltStateMachineBuilder
 import time
 
@@ -18,9 +18,23 @@ class Locations():
     self.change_user_hint_location = None
     self.close_app_hint_location = None
 
+class ThreadsInUse():
+  def __init__(self):
+    self.player_hint = False
+    self.menu_selection_arrow = False
+    self.dialog_arrow = False
+    self.r_to_boxes = False
+    self.box_arrow = False
+    self.shiny_marker = False
+    self.dialog_next = False
+    self.dialog_next_inverted = False
+    self.change_user_hint = False
+    self.close_app_hint = False
+
 ##----- globals
 current_frame = None
 locations = Locations()
+threads_in_use = ThreadsInUse()
 join_threads = False
 
 ##----- templates
@@ -30,7 +44,7 @@ def mount_rect(h,w):
   return _mount_rect
 
 def finder_factory(name, threshold, all):
-  def _find_internals():
+  def _find_internals(synchronization_event):
     global current_frame, locations, join_threads
 
     template = cv2.imread(f"./templates/{name}.jpg")
@@ -38,6 +52,8 @@ def finder_factory(name, threshold, all):
     while True:
       if join_threads:
         return
+
+      synchronization_event.wait()
       if current_frame is None:
         continue
       local_frame = current_frame
@@ -59,35 +75,8 @@ def finder_factory(name, threshold, all):
           locations.__dict__[f"{name}_location"] = position
         else:
           locations.__dict__[f"{name}_location"] = None
-      
-      # optimizing to only run once every 1/10 seconds
-      time.sleep(1/10)
 
   return _find_internals
-
-
-  global current_frame, locations, join_threads
-
-  template = cv2.imread("./templates/box_arrow.jpg")
-
-  while True:
-    if join_threads:
-      return
-    if current_frame is None:
-      continue
-    local_frame = current_frame
-    w,h = template.shape[:-1]
-    threshold = .6
-    matches = cv2.matchTemplate(local_frame, template, cv2.TM_CCOEFF_NORMED)
-    filtered_matches = numpy.where(matches >= threshold)
-    zipped_matches = list(zip(*filtered_matches[::-1]))
-    if len(zipped_matches) > 0:
-      pt = zipped_matches[0]
-      position = mount_rect(w,h)(pt)
-      # locations.r_to_boxes_location = map(mount_rect(w,h), zipped_matches)
-      locations.box_arrow_location = position
-    else:
-      locations.box_arrow_location = None
 
 ## ---- start algorithm
 
@@ -107,29 +96,45 @@ input_data = [
   ("close_app_hint", 0.7, False, (255, 0, 0))
 ]
 draw_boxes = True
-show_frame = False
+show_frame = True
+fps = 4
 
 if show_frame:
   cv2.namedWindow('frame')
 
 # Threads
-threads = []
+threads = {}
 for data in input_data:
-  thread = Thread(target=finder_factory(data[0], data[1], data[2]))
+  synchronization_event = Event()
+  thread = Thread(target=finder_factory(data[0], data[1], data[2]), args=(synchronization_event,))
   thread.start()
-  threads.append(thread)
+  threads[data[0]]={"thread": thread, "event": synchronization_event}
 
 # State Machine
-state_machine = DracozoltStateMachineBuilder(locations).build()
+state_machine = DracozoltStateMachineBuilder(locations, threads_in_use).build()
 
 # Main Loop
 while True:
   loop_start_time = datetime.now()
   ret, frame = video.read()
+
+  for thread_name in threads_in_use.__dict__:
+    if not threads_in_use.__dict__[thread_name]:
+      locations.__dict__[f"{thread_name}_location"] = None
+      continue
+    else:
+      threads[thread_name]["event"].set()
+      
   current_frame = frame
-  shown_frame = frame
-  
-  if draw_boxes:
+
+  for thread_name in threads:
+    threads[thread_name]["event"].clear()
+
+  shown_frame = None
+  if show_frame:
+    shown_frame = frame
+
+  if show_frame and draw_boxes:
     for data in input_data:
       evaluatable = locations.__dict__[f"{data[0]}_location"]
       if evaluatable != None:
@@ -145,20 +150,21 @@ while True:
   if show_frame:
     cv2.imshow('frame', shown_frame)
   
-  pressed_key = cv2.waitKey(1) & 0xFF
+    pressed_key = cv2.waitKey(1) & 0xFF
 
-  if pressed_key == ord('q'):
-    break
+    if pressed_key == ord('q'):
+      break
   
   state_machine.step()
   
   loop_end_time = datetime.now()
   loop_time_diff = (loop_end_time - loop_start_time).total_seconds()
-  time.sleep(max(1/10-loop_time_diff, 0))
+  time.sleep(max((1/fps)-loop_time_diff, 0))
 
 join_threads = True
-for thread in threads:
-  thread.join()
+for thread_name in threads:
+  threads[thread_name]["event"].set()
+  threads[thread_name]["thread"].join()
 
 video.release()
 cv2.destroyAllWindows()

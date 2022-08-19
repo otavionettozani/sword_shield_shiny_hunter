@@ -1,10 +1,11 @@
 from state_machine import StateMachine, State
 from controller_client import ControllerClient
-
+# Add Thread synchronization to optimize cpu
 class DracozoltStateMachineBuilder:
-  def __init__(self, locations, client=ControllerClient(mock=False)):
+  def __init__(self, locations, threads_in_use, client=ControllerClient(mock=True)):
     self.locations = locations
     self.client = client
+    self.threads_in_use = threads_in_use
 
   def build(self):
     def s1_action(state, start_time, current_time):
@@ -225,7 +226,7 @@ class DracozoltStateMachineBuilder:
         state.data["last_button_press"] = start_time
       interval_since_last_press = (current_time - state.data["last_button_press"]).total_seconds()
 
-      if not self.locations.dialog_next_location:
+      if not self.locations.r_to_boxes_location:
         return
 
       if interval_since_last_press > button_interval:
@@ -322,6 +323,71 @@ class DracozoltStateMachineBuilder:
     def s19_transition(state):
       return self.locations.close_app_hint_location != None
 
+    # Optimizations on processing
+    def s1_enter(state, start_time):
+      self.threads_in_use.dialog_arrow = True
+
+    def s5_exit(state, start_time, end_time):
+      self.threads_in_use.dialog_arrow = False
+      self.locations.dialog_arrow_location = None
+
+    def s6_enter(state, start_time):
+      self.threads_in_use.dialog_next = True
+    
+    def s10_exit(state, start_time, end_time):
+      self.threads_in_use.dialog_next = False
+      self.locations.dialog_next_location = None
+
+    def s11_enter(state, start_time):
+      self.threads_in_use.dialog_next_inverted = True
+    
+    def s12_exit(state, start_time, end_time):
+      self.threads_in_use.dialog_next_inverted = False
+      self.locations.dialog_next_inverted_location = None
+
+    def s13_enter(state, start_time):
+      self.threads_in_use.menu_selection_arrow = True
+    
+    def s14_enter(state, start_time):
+      self.threads_in_use.r_to_boxes = True
+
+    def s14_exit(state, start_time, end_time):
+      self.threads_in_use.menu_selection_arrow = False
+      self.locations.menu_selection_arrow_location = None
+
+    def s15_enter(state, start_time):
+      self.threads_in_use.box_arrow = True
+
+    def s15_exit(state, start_time, end_time):
+      self.threads_in_use.r_to_boxes = False
+      self.locations.r_to_boxes_location = None
+
+    def s16_exit(state, start_time, end_time):
+      self.threads_in_use.box_arrow = False
+      self.locations.box_arrow_location = None
+
+    def s17_enter(state, start_time):
+      self.threads_in_use.shiny_marker = True
+
+    def s17_exit(state, start_time, end_time):
+      self.threads_in_use.shiny_marker = False
+      self.locations.shiny_marker_location = None
+    
+    def s18_enter(state, start_time):
+      self.threads_in_use.change_user_hint = True
+
+    def s18_exit(state, start_time, end_time):
+      self.threads_in_use.change_user_hint = False
+      self.locations.change_user_hint_location = None
+
+    def s19_enter(state, start_time):
+      self.threads_in_use.close_app_hint = True
+
+    def s19_exit(state, start_time, end_time):
+      self.threads_in_use.close_app_hint = False
+      self.locations.close_app_hint_location = None
+
+
     s1 = State("Opening Game, First Talk")
     s2 = State("Talking To Scientist, First Decision")
     s3 = State("Talking To Scientist, Second Decision")
@@ -343,6 +409,7 @@ class DracozoltStateMachineBuilder:
     s18 = State("Isn't Shiny, Reset")
     s19 = State("Change User")
 
+    s1.set_on_enter(s1_enter)
     s1.set_action(s1_action)
     s1.add_transition(s2, s1_transition)
 
@@ -357,7 +424,9 @@ class DracozoltStateMachineBuilder:
 
     s5.set_action(s5_action)
     s5.add_transition(s6, s2_to_5_transition)
+    s5.set_on_exit(s5_exit)
 
+    s6.set_on_enter(s6_enter)
     s6.set_action(s6_to_10_action)
     s6.add_transition(s7, s6_to_10_transition)
 
@@ -372,35 +441,50 @@ class DracozoltStateMachineBuilder:
 
     s10.set_action(s6_to_10_action)
     s10.add_transition(s11, s6_to_10_transition)
+    s10.set_on_exit(s10_exit)
 
+    s11.set_on_enter(s11_enter)
     s11.set_action(s11_action)
     s11.add_transition(s12, s11_12_transition)
 
     s12.set_action(s12_action)
     s12.add_transition(s13, s11_12_transition)
+    s12.set_on_exit(s12_exit)
 
+    s13.set_on_enter(s13_enter)
     s13.set_action(s13_action)
     s13.add_transition(s14, s13_transition)
 
+    s14.set_on_enter(s14_enter)
     s14.set_action(s14_action)
     s14.add_transition(s15, s14_transition)
+    s14.set_on_exit(s14_exit)
 
+    s15.set_on_enter(s15_enter)
     s15.set_action(s15_action)
     s15.add_transition(s16, s15_transition)
+    s15.set_on_exit(s15_exit)
     
     s16.set_action(s16_action)
     s16.add_transition(s17, s16_transition)
+    s16.set_on_exit(s16_exit)
 
+    s17.set_on_enter(s17_enter)
     s17.set_action(s17_action)
     s17.add_transition(sEnd, s17_end_transition)
     s17.add_transition(s18, s17_reset_transition)
+    s17.set_on_exit(s17_exit)
 
     sEnd.set_action(sEnd_action)
 
+    s18.set_on_enter(s18_enter)
     s18.set_action(s18_action)
     s18.add_transition(s19, s18_transition)
+    s18.set_on_exit(s18_exit)
 
+    s19.set_on_enter(s19_enter)
     s19.set_action(s19_action)
     s19.add_transition(s1, s19_transition)
+    s19.set_on_exit(s19_exit)
 
     return StateMachine(s1)
